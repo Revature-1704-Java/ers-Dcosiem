@@ -22,7 +22,11 @@ public class App {
 		
 		System.out.println("Please enter an amount to submit for reimbursement.");
 		String temp = scan.nextLine();
-		int amount_in = dao.formatAmount(temp, scan);		
+		int amount_in = dao.formatAmount(temp, scan);	
+		//Will check amount to reimburse, if invalid it will prompt again
+		//Otherwise if its within the budget, deduct it from their total amount,
+		//Else if there is not enough it will tell you maximum you can take out and
+		//prompt you again
 		dao.submitForm(login_id, amount_in, scan);
 		
 		
