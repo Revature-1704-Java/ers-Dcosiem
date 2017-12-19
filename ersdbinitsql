@@ -1,0 +1,58 @@
+create USER ERS
+Identified by p4ssw0rd
+Default tablespace users
+temporary tablespace temp
+QUOTA 10M on users;
+
+Grant connect to ers;
+Grant resource to ers;
+Grant create session to ers;
+Grant table to ers;
+Grant create view to ers;
+
+CONN ers/p4ssw0rd;
+
+
+CREATE TABLE Employee
+(
+    EmployeeID NUMBER NOT NULL,
+    Firstname VARCHAR2(160) NOT NULL,
+    Lastname VARCHAR2(160) NOT NULL,
+    PASSWORD VARCHAR2(200) NOT NULL,
+    Amount NUMBER DEFAULT 300 CHECK (Amount >= 0),
+    CONSTRAINT PK_EMPLOYEE PRIMARY KEY  (EmployeeID)    
+);
+
+CREATE TABLE REIMBURSEMENT
+(
+    EmployeeID NUMBER NOT NULL,
+    Amount NUMBER NOT NULL CHECK (AMOUNT >= 0) ,
+    Status BOOLEAN default false
+);
+
+CREATE OR REPLACE PROCEDURE
+SP_SUBMIT_FORM(E_ID IN NUMBER, AMT IN NUMBER) AS
+BEGIN
+IF TRUE THEN
+        DBMS_OUTPUT.PUT_LINE('VALID PARAM');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('INVALID PARAM');
+    END IF;    
+    --SAVEPOINT; 
+    UPDATE EMPLOYEE SET AMOUNT = AMOUNT - AMT
+        WHERE EMPLOYEEID = E_ID;
+    UPDATE REIMBURSEMENT SET AMOUNT = AMOUNT - AMT
+        WHERE EMPLOYEEID = E_ID;    
+        
+    DBMS_OUTPUT.PUT_LINE('Submitted Form for $'||AMT);
+    COMMIT;
+    
+    EXCEPTION
+        WHEN OTHERS
+        THEN DBMS_OUTPUT.PUT_LINE('FAILED TO SUBMTI FORM');
+        ROLLBACK;
+END;
+/
+
+Insert into Employee values(1, 'Jon', 'Snow', 'winterfell', 300);
+Insert into Employee values(2, 'Bran', 'Stark', 'raven', 300);
