@@ -1,4 +1,6 @@
-create USER ERS
+drop user ers CASCADE;
+
+create USER ers
 Identified by p4ssw0rd
 Default tablespace users
 temporary tablespace temp
@@ -7,7 +9,7 @@ QUOTA 10M on users;
 Grant connect to ers;
 Grant resource to ers;
 Grant create session to ers;
-Grant table to ers;
+Grant create table to ers;
 Grant create view to ers;
 
 CONN ers/p4ssw0rd;
@@ -23,11 +25,12 @@ CREATE TABLE Employee
     CONSTRAINT PK_EMPLOYEE PRIMARY KEY  (EmployeeID)    
 );
 
+
 CREATE TABLE REIMBURSEMENT
 (
     EmployeeID NUMBER NOT NULL,
-    Amount NUMBER NOT NULL CHECK (AMOUNT >= 0) ,
-    Status BOOLEAN default false
+    Amount NUMBER NOT NULL CHECK (Amount >= 0),
+    Status Varchar2(8)
 );
 
 CREATE OR REPLACE PROCEDURE
@@ -56,3 +59,6 @@ END;
 
 Insert into Employee values(1, 'Jon', 'Snow', 'winterfell', 300);
 Insert into Employee values(2, 'Bran', 'Stark', 'raven', 300);
+
+Commit;
+Exit;
