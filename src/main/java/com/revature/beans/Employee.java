@@ -5,15 +5,13 @@ public class Employee {
 	private int id;
 	private String firstname;
 	private String lastname;
-	private int amount;
 	private String password;
 	
-	public Employee(int id, String firstname, String lastname, int amount, String password) {
+	public Employee(int id, String firstname, String lastname, String password) {
 		super();
 		this.id = id;
 		this.firstname = firstname;
 		this.lastname = lastname;
-		this.amount = amount;
 		this.password = password;
 	}
 
@@ -41,14 +39,6 @@ public class Employee {
 		this.lastname = lastname;
 	}
 
-	public int getAmount() {
-		return amount;
-	}
-
-	public void setAmount(int amount) {
-		this.amount = amount;
-	}
-
 	public String getPassword() {
 		return password;
 	}
@@ -60,7 +50,7 @@ public class Employee {
 
 	@Override
 	public String toString() {
-		return "Employee [id=" + id + ", firstname=" + firstname + ", lastname=" + lastname + ", amount=" + amount
+		return "Employee [id=" + id + ", firstname=" + firstname + ", lastname=" + lastname + ", ="
 				+ ", password=" + password + "]";
 	}
 

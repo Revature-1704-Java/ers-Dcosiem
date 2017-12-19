@@ -7,44 +7,43 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import com.revature.beans.Employee;
+import com.revature.beans.Reimbursement;
 import com.revature.util.ConnectionUtil;
 
 public class EmployeeDAO {
 	
-	public List<Employee> getAllEmployee() {
-		PreparedStatement ps = null;
-		Employee e = null;
-		List<Employee> employee = new ArrayList<>();
-		
-		try(Connection conn = ConnectionUtil.getConnection()) {
-			String sql = "SELECT * FROM EMPLOYEE";
-			ps = conn.prepareStatement(sql);
-			//Add any variables to PS
-			ResultSet rs = ps.executeQuery();
-			
-			while (rs.next()) {
-				int id = rs.getInt("EMPLOYEEID");
-				String f_name = rs.getString("FIRSTNAME");
-				String l_name = rs.getString("LASTNAME");
-				int amt = rs.getInt("AMOUNT");
-				String pw = rs.getString("PASSWORD");
-				
-				e = new Employee(id, f_name, l_name, amt, pw);
-				employee.add(e);
-			}
-			rs.close();
-			ps.close();
-		} catch (Exception ex) {
-			ex.getMessage();
-		}
-		
-		return employee;
-	}
+//	public List<Employee> getAllEmployee() {
+//		PreparedStatement ps = null;
+//		Employee e = null;
+//		List<Employee> employee = new ArrayList<>();
+//		
+//		try(Connection conn = ConnectionUtil.getConnection()) {
+//			String sql = "SELECT * FROM EMPLOYEE";
+//			ps = conn.prepareStatement(sql);
+//			//Add any variables to PS
+//			ResultSet rs = ps.executeQuery();
+//			
+//			while (rs.next()) {
+//				int id = rs.getInt("EMPLOYEEID");
+//				String f_name = rs.getString("FIRSTNAME");
+//				String l_name = rs.getString("LASTNAME");
+//				int amt = rs.getInt("AMOUNT");
+//				String pw = rs.getString("PASSWORD");
+//				
+//				e = new Employee(id, f_name, l_name, pw);
+//				employee.add(e);
+//			}
+//			rs.close();
+//			ps.close();
+//		} catch (Exception ex) {
+//			ex.getMessage();
+//		}
+//		
+//		return employee;
+//	}
 	
     public boolean isNumeric(String str) {
         NumberFormat formatter = NumberFormat.getInstance();
@@ -71,13 +70,10 @@ public class EmployeeDAO {
     public int checkLogin(String login, String password, Scanner scan) {
     	int answer = -1;
     	if(isNumeric(login)) {
-			int login_id = Integer.parseInt(login);
-			if(getEmployee(Integer.parseInt(login)) != null) {
-				Employee temp = getEmployee(login_id);
-				if(temp.getPassword().equals(password)) {
-					answer = login_id;
-				}
-			}
+    		Employee e = getEmployee(Integer.parseInt(login));
+    		if(e.getPassword().equals(password)) {
+    			return Integer.parseInt(login);
+    		}			
 		} else {
 			//Login Failed Prompt User Again
 			System.out.println("I'm sorry, but you either chose a wrong ID or put in the wrong password.");
@@ -103,10 +99,9 @@ public class EmployeeDAO {
 				int eid = rs.getInt("EMPLOYEEID");
 				String f_name = rs.getString("FIRSTNAME");
 				String l_name = rs.getString("LASTNAME");
-				int amt = rs.getInt("AMOUNT");
 				String pw = rs.getString("PASSWORD");
 				
-				e = new Employee(eid, f_name, l_name, amt, pw);
+				e = new Employee(eid, f_name, l_name, pw);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -130,15 +125,53 @@ public class EmployeeDAO {
 		}
 		return e;
 	}
-	public boolean checkAmount(int amount, Employee e) {
-		if(e.getAmount() - amount >= 0) {
+	public Reimbursement getReimbursement(int id) {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		Reimbursement r = null;
+		try(Connection conn = ConnectionUtil.getConnection()) {
+			String sql = "SELECT * FROM REIMBURSEMENT WHERE EMPLOYEEID = ?";
+			ps = conn.prepareStatement(sql);
+			ps.setInt(1, id);
+			
+			rs = ps.executeQuery();
+			while (rs.next()) {
+				int eid = rs.getInt("EMPLOYEEID");
+				int amount = rs.getInt("AMOUNT");
+				
+				r = new Reimbursement(eid, amount);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (SQLException sq) {
+					// TODO Auto-generated catch block
+					sq.printStackTrace();
+				}
+			}
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sq) {
+					// TODO Auto-generated catch block
+					sq.printStackTrace();
+				}
+			}
+		}
+		return r;
+	}
+	public boolean checkAmount(int amount, Reimbursement r) {
+		if(r.getAmount() - amount >= 0) {
 			return true;
 		} else {
 			return false;
 		}		
 	}
 	public void submitForm(int eid, int amt, Scanner scan) {
-		if(checkAmount(amt, getEmployee(eid))) {
+		if(checkAmount(amt, getReimbursement(eid))) {
 			CallableStatement cs = null;
 			try (Connection conn = ConnectionUtil.getConnection()) {
 				String sql = "{CALL SP_SUBMIT_FORM(?, ?)}";
@@ -158,7 +191,7 @@ public class EmployeeDAO {
 			}
 		} else {
 			System.out.println("Im sorry, but we couldn't reimburst you for the amount you gave.");
-			System.out.println("The maxium reimburstment we can give you is" + getEmployee(eid).getAmount());
+			System.out.println("The maxium reimburstment we can give you is" + getReimbursement(eid).getAmount());
 			System.out.println("Please enter an amount to submit for reimbursement.");
 			String temp = scan.nextLine();
 			submitForm(eid, formatAmount(temp, scan), scan);
